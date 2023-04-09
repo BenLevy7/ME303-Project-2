@@ -10,19 +10,23 @@ import math
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
-radius = 1
-time = 400
+radius = 0.025
+time = 1200
 
-nodes_space = 60
-nodes_time = 3000
+nodes_space = 20
+nodes_time = 300
 
 dx = np.linspace(0, radius, nodes_space)
 dt = np.linspace(0, time, nodes_time)
-print(len(dt))
+#print(len(dt))
 space_grid = radius/nodes_space
 time_grid = time/nodes_time
-alpha = 0.001
+density = 1083 #g/cm3
+heat_cap = 3000 #j*g-1*K*-1
+thermal_cond = 0.5 #W*cm-1*K-1
 
+alpha = thermal_cond/(density*heat_cap)
+print(alpha)
 CFL = time_grid-(1/(2*alpha))*space_grid**2
 print(CFL)
 F = (alpha*time_grid)/(space_grid**2)
@@ -36,11 +40,10 @@ column = len(dx)
 Temp = np.zeros((row,column))
 
 #Initial conditions
-Temp[0,:] = 24
+Temp[0,:] = 300
 
 #boundary condition
-Temp[:,0] = 100
-Temp[:,column-1] = 100
+Temp[:,0] = 373
 
 Temp.round(2)
 #print(Temp)
@@ -54,13 +57,17 @@ time_print = []
 
 for i in range (1,row): #time loop
      for j in range(1,column-1): #radius loop
-        Temp[i][j] =  (Temp[i-1][j]) + ((alpha*time_grid)/(radius*space_grid))*((2)*(Temp[i-1][j+1] - Temp[i-1][j]) + (radius/space_grid)*(Temp[i-1][j+1] - 2*Temp[i-1][j]+Temp[i-1][j-1]))
+        #Temp[i][j] =  (Temp[i-1][j]) + ((alpha*time_grid)/(radius*space_grid))*(2*(Temp[i-1][j+1] - Temp[i-1][j]) + (radius/space_grid)*(Temp[i-1][j+1] - 2*Temp[i-1][j]+Temp[i-1][j-1]))
+        #Temp[i][j] = Temp[i-1][j] + (alpha*time_grid/(space_grid**2))*(Temp[i-1][j+1] - 2*Temp[i-1][j]+Temp[i-1][j-1]) +  ((alpha*time_grid)/(space_grid**2*radius))*(Temp[i-1][j+1] - Temp[i-1][j-1])
         #Temp[i,j] = (1-2*F)*Temp[i-1,j] + F*Temp[i-1,j+1] + F*Temp[i-1,j-1] #Regular heat equation
         #Temp[i][j] = (1-2*F)*Temp[i-1][j] + F*Temp[i-1][j+1] + F*Temp[i-1][j-1]
         #print(i,j)
         #Temp[i][j]
-      
+        Temp[i][j] = Temp[i-1][j]+((alpha*time_grid)/radius**2)*(2*radius*((Temp[i-1][j]-Temp[i-1][j-1])/space_grid) + radius**2*((Temp[i-1][j+1] - 2*Temp[i-1][j]+Temp[i-1][j-1])/space_grid**2))
 
+     Temp[i][column-1] = (Temp[i-1][j]) + ((alpha*time_grid)/(radius*space_grid))*(2*(Temp[i-1][j-1] - Temp[i-1][j]) + (radius/space_grid)*(Temp[i-1][j-1] - 2*Temp[i-1][j]+Temp[i-1][j-1]))
+     #print(Temp[i][column-1])
+        
 
 
 
